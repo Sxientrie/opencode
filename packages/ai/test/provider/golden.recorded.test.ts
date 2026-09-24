@@ -19,10 +19,7 @@ const openAI = OpenAI.configure({
   apiKey: process.env.OPENAI_API_KEY ?? "fixture",
 })
 const openAIChat = openAI.chat("gpt-4o-mini")
-const openAIResponses = OpenAI.configure({
-  apiKey: process.env.OPENAI_API_KEY ?? "fixture",
-  providerOptions: { textVerbosity: "low" },
-}).responses("gpt-5.5")
+const openAIResponses = openAI.responses("gpt-5.5")
 const anthropic = Anthropic.configure({
   apiKey: process.env.ANTHROPIC_API_KEY ?? "fixture",
 })
