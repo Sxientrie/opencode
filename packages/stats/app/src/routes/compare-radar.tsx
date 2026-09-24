@@ -62,6 +62,13 @@ export function ComparisonRadar(props: ComparisonRadarProps) {
               <span>
                 <strong>{model.name}</strong>
                 <Show when={model.labName}>{(name) => <small>{name()}</small>}</Show>
+                <Show when={model.scores.some((score) => score === undefined)}>
+                  <small data-slot="compare-radar-coverage">
+                    {model.scores.every((score) => score === undefined)
+                      ? "No data available"
+                      : `${model.scores.filter((score) => score !== undefined).length} of ${axes().length} metrics available · gaps mean no data`}
+                  </small>
+                </Show>
               </span>
             </li>
           )}
@@ -86,10 +93,16 @@ export function ComparisonRadar(props: ComparisonRadarProps) {
             <For each={series()}>
               {(model) => (
                 <g data-slot="compare-radar-series" style={{ color: model.color }}>
-                  <polygon data-slot="compare-radar-area" points={radarSeriesPolygon(model.scores)} />
+                  <Show
+                    when={model.scores.every((score) => score !== undefined)}
+                    fallback={<path data-slot="compare-radar-line" d={radarSeriesPath(model.scores)} />}
+                  >
+                    <polygon data-slot="compare-radar-area" points={radarSeriesPolygon(model.scores)} />
+                  </Show>
                   <For each={model.scores}>
                     {(score, index) => {
-                      const point = () => radarPoint(index(), axes().length, score ?? 0)
+                      if (score === undefined) return null
+                      const point = () => radarPoint(index(), axes().length, score)
                       return (
                         <>
                           <circle data-slot="compare-radar-point" cx={point().x} cy={point().y} r="0.95" />
@@ -138,6 +151,13 @@ export function ComparisonRadar(props: ComparisonRadarProps) {
           >
             <strong>{axes()[activeAxis() ?? 0]?.label}</strong>
             <p>{axes()[activeAxis() ?? 0]?.description}</p>
+            <For each={series()}>
+              {(model) => (
+                <p>
+                  {model.name}: {formatRadarScore(model.scores[activeAxis() ?? 0])}
+                </p>
+              )}
+            </For>
           </div>
         </Show>
       </div>
@@ -181,8 +201,7 @@ function buildRadarAxes(catalogModels: readonly ModelCatalogEntry[]): RadarAxis[
     {
       label: "Reasoning",
       description: "Ability to solve complex, multi-step problems. Based on reasoning benchmarks when available.",
-      score: (model) =>
-        benchmarkPercentile(model, benchmarks, reasoningBenchmarkPattern) ?? (model.reasoning ? 100 : 0),
+      score: (model) => benchmarkPercentile(model, benchmarks, reasoningBenchmarkPattern),
     },
     {
       label: "Coding",
@@ -326,8 +345,21 @@ function radarPolygonPoints(count: number, score: number) {
 
 function radarSeriesPolygon(scores: (number | undefined)[]) {
   return scores
-    .map((score, index) => radarPoint(index, scores.length, score ?? 0))
+    .flatMap((score, index) => (score === undefined ? [] : [radarPoint(index, scores.length, score)]))
     .map((point) => `${point.x},${point.y}`)
+    .join(" ")
+}
+
+// Only connect neighboring measured axes; missing values have no position on the chart.
+export function radarSeriesPath(scores: readonly (number | undefined)[]) {
+  return scores
+    .flatMap((score, index) => {
+      const next = scores[(index + 1) % scores.length]
+      if (score === undefined || next === undefined) return []
+      const start = radarPoint(index, scores.length, score)
+      const end = radarPoint((index + 1) % scores.length, scores.length, next)
+      return [`M ${start.x},${start.y} L ${end.x},${end.y}`]
+    })
     .join(" ")
 }
 
