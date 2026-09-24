@@ -11,8 +11,8 @@
 This checkout is a fork (`Sxientrie/opencode`), not the upstream repository (`anomalyco/opencode`). Follow these rules when working here:
 
 - `origin` is the user's fork and is the only remote you may push to. `upstream` points at `anomalyco/opencode` and is fetch-only — never push to it.
-- Do all work on `my-changes`, or a new short branch created off `v2`. Never commit directly on `v2`: it is a clean fast-forward mirror of `upstream/v2`.
-- Pull official updates by fetching upstream and rebasing the work branch — do not merge upstream into it. While on the work branch: `git fetch upstream`, then `git rebase upstream/v2`. The one-command helper is `C:\Users\MODiE\Desktop\opencode-sync\sync-upstream.ps1 -Branch my-changes`.
+- Do all work on `sxientrie`, or a new short branch created off `v2`. Never commit directly on `v2`: it is a clean fast-forward mirror of `upstream/v2`.
+- Pull official updates by fetching upstream and rebasing the work branch — do not merge upstream into it. While on the work branch: `git fetch upstream`, then `git rebase upstream/v2`. The one-command helper is `C:\Users\MODiE\Desktop\opencode-sync\sync-upstream.ps1 -Branch sxientrie`.
 - After a rebase, publish with `git push --force-with-lease origin <branch>`, never a bare `--force`.
 - All other conventions in this file (branch names, commits, style, tests, checks) still apply on top of these fork rules.
 
