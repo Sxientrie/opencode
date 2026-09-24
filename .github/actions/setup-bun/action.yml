@@ -49,6 +49,32 @@ runs:
         restore-keys: |
           ${{ runner.os }}-bun-
 
+    # Bun can reapply patches after a cache restore; Windows cannot rename over
+    # an existing patched directory (ENOTEMPTY). Keep unpatched downloads cached.
+    - name: Clear restored patched packages on Windows
+      if: runner.os == 'Windows'
+      env:
+        BUN_CACHE_DIR: ${{ steps.cache.outputs.dir }}
+      shell: bash
+      run: |
+        node --input-type=module <<'JS'
+        import { existsSync, readdirSync, rmSync } from "node:fs"
+        import { join } from "node:path"
+
+        const cache = process.env.BUN_CACHE_DIR
+        if (existsSync(cache)) {
+          const scopes = readdirSync(cache, { withFileTypes: true })
+            .filter((entry) => entry.isDirectory() && entry.name.startsWith("@"))
+            .map((entry) => join(cache, entry.name))
+          for (const directory of [cache, ...scopes]) {
+            for (const entry of readdirSync(directory, { withFileTypes: true })) {
+              if (!entry.isDirectory() || !entry.name.includes("_patch_hash=")) continue
+              rmSync(join(directory, entry.name), { recursive: true, force: true })
+            }
+          }
+        }
+        JS
+
     - name: Install setuptools for distutils compatibility
       run: python3 -m pip install setuptools || pip install setuptools || true
       shell: bash
