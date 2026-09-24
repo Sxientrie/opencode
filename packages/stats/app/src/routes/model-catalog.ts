@@ -25,8 +25,8 @@ export type ModelCatalogEntry = {
   limit?: { context?: number; output?: number }
   modalities: { input: string[]; output: string[] }
   openWeights: boolean
-  reasoning: boolean
-  toolCall: boolean
+  reasoning?: boolean
+  toolCall?: boolean
   attachment: boolean
   temperature: boolean
   cost?: ModelCatalogCost
@@ -205,8 +205,8 @@ function readModelCatalogEntry(value: unknown): ModelCatalogEntry[] {
       limit: readCatalogLimit(value.limit),
       modalities: readCatalogModalities(value.modalities),
       openWeights: booleanValue(value.open_weights),
-      reasoning: booleanValue(value.reasoning),
-      toolCall: booleanValue(value.tool_call),
+      reasoning: typeof value.reasoning === "boolean" ? value.reasoning : undefined,
+      toolCall: typeof value.tool_call === "boolean" ? value.tool_call : undefined,
       attachment: booleanValue(value.attachment),
       temperature: booleanValue(value.temperature),
       cost: readCatalogCost(value.cost),
