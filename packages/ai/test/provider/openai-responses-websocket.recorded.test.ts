@@ -16,7 +16,10 @@ import { decodeJson } from "../../src/protocols/shared.js"
 import { weatherRuntimeTool, weatherTool, weatherToolName } from "../recorded-scenarios.js"
 import { recordedTests } from "../recorded-test.js"
 
-const model = configure({ apiKey: process.env.OPENAI_API_KEY ?? "fixture" }).responses("gpt-5.5")
+const model = configure({
+  apiKey: process.env.OPENAI_API_KEY ?? "fixture",
+  providerOptions: { textVerbosity: "low" },
+}).responses("gpt-5.5")
 const recorded = recordedTests({
   prefix: "openai-responses-websocket",
   provider: "openai",

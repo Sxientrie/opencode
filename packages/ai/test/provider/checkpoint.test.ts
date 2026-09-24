@@ -114,6 +114,28 @@ testEffect(
   }),
 )
 
+testEffect(
+  dynamicResponse(({ text, respond }) =>
+    Effect.sync(() => {
+      expect(JSON.parse(text).text).toEqual({ verbosity: "low" })
+      return respond(
+        sseEvents({ type: "response.completed", response: { id: "resp_1", output: [checkpoint] } }),
+        { headers: { "content-type": "text/event-stream" } },
+      )
+    }),
+  ),
+).effect("keeps explicit verbosity on a trigger checkpoint for prompt cache reuse", () =>
+  LLMClient.compact(
+    LLM.request({
+      model: OpenAI.configure({ apiKey: "fixture" }).responses("gpt-5.5"),
+      prompt: "Hello.",
+      providerOptions: { textVerbosity: "low" },
+      http: { body: { text: { format: { type: "json_object" } } } },
+    }),
+    trigger,
+  ),
+)
+
 const idless = { type: "compaction", encrypted_content: "opaque" }
 testEffect(
   fixedResponse(
