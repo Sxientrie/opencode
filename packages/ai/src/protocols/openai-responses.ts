@@ -257,9 +257,8 @@ const checkpointBody = {
       parallel_tool_calls: true,
       tool_choice: undefined,
       context_management: undefined,
-      // Verbosity changes the cached prefix, even though the trigger emits no text.
-      // Keep it while dropping generation-only output formatting from the overlay.
-      text: native.text?.verbosity ? { verbosity: native.text.verbosity } : undefined,
+      // Keep verbosity for cache reuse, but drop generation-only formatting from the overlay.
+      text: native.text,
       max_output_tokens: undefined,
       max_tool_calls: undefined,
     })
