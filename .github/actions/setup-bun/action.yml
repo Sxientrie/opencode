@@ -64,7 +64,7 @@ runs:
         const cache = process.env.BUN_CACHE_DIR
         if (existsSync(cache)) {
           const scopes = readdirSync(cache, { withFileTypes: true })
-            .filter((entry) => entry.isDirectory() && entry.name.startsWith("@"))
+            .filter((entry) => entry.isDirectory() && /^@[^@]+$/.test(entry.name))
             .map((entry) => join(cache, entry.name))
           for (const directory of [cache, ...scopes]) {
             for (const entry of readdirSync(directory, { withFileTypes: true })) {
