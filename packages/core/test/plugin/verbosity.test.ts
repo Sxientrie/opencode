@@ -80,6 +80,26 @@ it.effect("sets known OpenAI Responses defaults without overriding configured or
         },
         models: [Model.Info.default(Provider.ID.make("configured"), Model.ID.make("gpt-5.5"))],
       })
+      for (const [providerID, packageName, modelID] of [
+        ["azure", "@opencode/ai/providers/azure/responses", "gpt-5.5"],
+        ["bedrock-mantle", "@opencode/ai/providers/amazon-bedrock/mantle/responses", "openai.gpt-6-sol"],
+        ["cloudflare", "@opencode/ai/providers/cloudflare-ai-gateway", "openai/gpt-5.6-sol"],
+        ["vercel", Provider.aisdk("@ai-sdk/gateway"), "openai/gpt-6-astra"],
+        ["azure-chat", "@opencode/ai/providers/azure/chat", "gpt-5.5"],
+        ["bedrock-converse", "@opencode/ai/providers/amazon-bedrock", "global.openai.gpt-6-sol"],
+        ["cloudflare-chat", "@opencode/ai/providers/cloudflare-ai-gateway", "workers-ai/gpt-5.5"],
+        ["vercel-other", Provider.aisdk("@ai-sdk/gateway"), "anthropic/gpt-5.5"],
+      ] as const) {
+        editor.add({
+          info: { ...Provider.Info.empty(Provider.ID.make(providerID)), package: packageName },
+          models: [
+            {
+              ...Model.Info.default(Provider.ID.make(providerID), Model.ID.make("selected")),
+              modelID: Model.ID.make(modelID),
+            },
+          ],
+        })
+      }
     })
     yield* VerbosityPlugin.Plugin.effect(yield* PluginHost.make(plugins))
 
@@ -95,6 +115,10 @@ it.effect("sets known OpenAI Responses defaults without overriding configured or
       ref("openai", "chat"),
       ref("openrouter", "gpt-5.5"),
       ref("configured", "gpt-5.5"),
+      ref("azure-chat", "selected"),
+      ref("bedrock-converse", "selected"),
+      ref("cloudflare-chat", "selected"),
+      ref("vercel-other", "selected"),
       ref("openai", "gpt-6-astra", "quiet"),
       ref("opencode", "no-default"),
     ]) {
@@ -106,6 +130,12 @@ it.effect("sets known OpenAI Responses defaults without overriding configured or
     const alias = request(ref("opencode", "astra-alias"))
     yield* hooks.trigger("session", "context", alias)
     expect(alias.options.textVerbosity).toBe("low")
+
+    for (const providerID of ["azure", "bedrock-mantle", "cloudflare", "vercel"]) {
+      const event = request(ref(providerID, "selected"))
+      yield* hooks.trigger("session", "context", event)
+      expect(event.options.textVerbosity).toBe("low")
+    }
 
     const overridden = request(ref("openai", "gpt-5.5"), { textVerbosity: "high" })
     yield* hooks.trigger("session", "context", overridden)
